@@ -16,9 +16,6 @@
 
 
 # Global Variables
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-export SCRIPT_DIR
-
 MIRRORLIST_TEMP="${HOME}/MIRRORLIST_TEMP"
 export MIRRORLIST_TEMP
 
@@ -33,6 +30,75 @@ export MIRRORLIST_URL_RAW
 
 MIRRORLIST_URL="$(printf '%s' "${MIRRORLIST_URL_RAW[@]}")"
 export MIRRORLIST_URL
+
+#######################################
+# Generates a local timestamp.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Outputs:
+#   Timestamp in localtime.
+#######################################
+function generate_timestamp() {
+  timedatectl | awk 'NR==1 {printf ("[%1s %s]", $4, $5)}'
+}
+
+#######################################
+# Outputs a info message to STDOUT.
+# Globals:
+#   None
+# Arguments:
+#   Message to output, a string.
+# Outputs:
+#   Message to STDOUT in blue to indicate informational output.
+#######################################
+function info_msg() {
+  timestamp=$(generate_timestamp)
+  echo -e "\033[1;36m${timestamp} ${1}\033[0m"
+}
+
+#######################################
+# Outputs a successful message to STDOUT.
+# Globals:
+#   None
+# Arguments:
+#   Message to output, a string.
+# Outputs:
+#   Message to STDOUT in green to indicate a success
+#######################################
+function success_msg() {
+  timestamp=$(generate_timestamp)
+  echo -e "\033[1;32m${timestamp} ${1}\033[0m"
+}
+
+#######################################
+# Outputs a warning message to STDOUT.
+# Globals:
+#   None
+# Arguments:
+#   Message to output, a string.
+# Outputs:
+#   Message to STDOUT in yellow to indicate a warning
+#######################################
+function warning_msg() {
+  timestamp=$(generate_timestamp)
+  echo -e "\033[1;33m${timestamp} ${1}\033[0m"
+}
+
+#######################################
+# Outputs an error message to STDOUT.
+# Globals:
+#   None
+# Arguments:
+#   Message to output, a string.
+# Outputs:
+#   Message to STDOUT in red to indicate a failure
+#######################################
+function error_msg() {
+  timestamp=$(generate_timestamp)
+  echo -e "\033[1;31m${timestamp} ${1}\033[0m"
+}
 
 #######################################
 # Delete temporary directory for downloaded mirrorlist.
