@@ -165,7 +165,7 @@ function create_temp_dir() {
 function download_mirrorlist() {
   info_msg "Downloading new mirrorlist to ${MIRRORLIST_TEMP}"
 
-  curl "$MIRRORLIST_URL" -o "${MIRRORLIST_TEMP}/mirrorlist"
+  curl -s "$MIRRORLIST_URL" -o "${MIRRORLIST_TEMP}/mirrorlist"
 }
 
 #######################################
