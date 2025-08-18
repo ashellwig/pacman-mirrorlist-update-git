@@ -155,19 +155,13 @@ function check_mirrorlist_dates() {
   fi
 }
 
-working -n "Creating temporary directory."
-log_cmd -c create_temp_dir create_temp_dir || ko
+create_temp_dir || ko
 
-working -n "Downloading the fresh mirrorlist."
-log_cmd -c download_mirrorlist download_mirrorlist || ko
+download_mirrorlist || ko
 
-working -n "Cleaning up the downloaded mirrorlist."
-log_cmd -c clean_mirrorlist_file clean_mirrorlist_file || ko
+clean_mirrorlist_file || ko
 
-working -n "Checking the dates of the mirrorlists."
-log_cmd -c check_mirrorlist_dates check_mirrorlist_dates || ko
-
-finish
+check_mirrorlist_dates || ko
 
 # Unset variables.
 # unset MIRRORLIST_TEMP_DIR
