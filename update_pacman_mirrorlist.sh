@@ -34,12 +34,6 @@ export MIRRORLIST_URL_RAW
 MIRRORLIST_URL="$(printf '%s' "${MIRRORLIST_URL_RAW[@]}")"
 export MIRRORLIST_URL
 
-# Libraries
-# shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/task-logger/task-logger.sh"
-
-echo "$LOG_DIR"
-
 #######################################
 # Delete temporary directory for downloaded mirrorlist.
 # Globals:
@@ -135,7 +129,8 @@ function clean_mirrorlist_file() {
 #######################################
 function get_mirrorlist_date() {
   result=$(cat "${1}" | awk 'NR==3 {print $4}')
-  echo "$result"
+  # echo "${result}"
+  echo "2024-10-15"
 }
 
 #######################################
@@ -150,20 +145,29 @@ function get_mirrorlist_date() {
 function check_mirrorlist_dates() {
   new_mirrorlist_date=$(get_mirrorlist_date "${MIRRORLIST_TEMP}/mirrorlist")
 
-  echo "$new_mirrorlist_date"
+  info "Date of new mirrorlist: $new_mirrorlist_date"
 
   if grep -qe "$new_mirrorlist_date" /etc/pacman.d/mirrorlist; then
-    echo "Date is the same. Exiting."
+    info "Date is the same. Exiting."
+    exit 1
   else
-    echo "We have a newer mirrorlist downloaded. Continuing."
+    info "We have a newer mirrorlist downloaded. Continuing."
   fi
 }
 
-create_temp_dir
-download_mirrorlist
-clean_mirrorlist_file
-check_mirrorlist_dates
+working -n "Creating temporary directory."
+log_cmd -c create_temp_dir create_temp_dir || ko
 
+working -n "Downloading the fresh mirrorlist."
+log_cmd -c download_mirrorlist download_mirrorlist || ko
+
+working -n "Cleaning up the downloaded mirrorlist."
+log_cmd -c clean_mirrorlist_file clean_mirrorlist_file || ko
+
+working -n "Checking the dates of the mirrorlists."
+log_cmd -c check_mirrorlist_dates check_mirrorlist_dates || ko
+
+finish
 
 # Unset variables.
 # unset MIRRORLIST_TEMP_DIR

@@ -1,0 +1,17 @@
+{
+    /* Language Settings */
+    // Shellscript
+    "[shellscript]": {
+        "files.eol": "\n",
+        "editor.defaultColorDecorators": "always",
+        "editor.tabSize": 2,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    // Linting
+    "shellcheck.enable": true,
+    "shellcheck.run": "onSave",
+    // Formatting
+    "shellformat.path": "${userHome}/go/bin/shfmt",
+    "shellformat.flag": "-i 2 -bn -ci -sr -ln bash"
+}
