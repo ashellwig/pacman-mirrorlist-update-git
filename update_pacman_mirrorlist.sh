@@ -49,9 +49,9 @@ function clean_temp_dir() {
   fi
 
   if [[ ! -d "${MIRRORLIST_TEMP}" ]]; then
-    good "Successfully removed MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
+    success_msg "Successfully removed MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
   else
-    bad "Failed to delete MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
+    warning_msg "Failed to delete MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
     return 1
   fi
 }
@@ -66,10 +66,10 @@ function clean_temp_dir() {
 #   0 if successful, non-zero on error.
 #######################################
 function create_temp_dir() {
-  info "Attempting to create temporary directory at ${MIRRORLIST_TEMP}."
+  info_msg "Attempting to create temporary directory at ${MIRRORLIST_TEMP}."
 
   if [[ -d "${MIRRORLIST_TEMP}" ]]; then
-    warning "MIRRORLIST_TEMP already exists at ${MIRRORLIST_TEMP}. Removing."
+    warning_msg "MIRRORLIST_TEMP already exists at ${MIRRORLIST_TEMP}. Removing."
     clean_temp_dir
     mkdir -p "${MIRRORLIST_TEMP}"
   else
@@ -77,9 +77,9 @@ function create_temp_dir() {
   fi
 
   if [[ -d "${MIRRORLIST_TEMP}" ]]; then
-    good "Successfully created MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
+    success_msg "Successfully created MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
   else
-    bad "Failed to create MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
+    warning_msg "Failed to create MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
     return 1
   fi
 }
@@ -97,7 +97,7 @@ function create_temp_dir() {
 #   Message indicating that mirror list is already up-to-date to STDOUT
 #######################################
 function download_mirrorlist() {
-  info "Downloading new mirrorlist to ${MIRRORLIST_TEMP}"
+  info_msg "Downloading new mirrorlist to ${MIRRORLIST_TEMP}"
 
   curl "$MIRRORLIST_URL" -o "${MIRRORLIST_TEMP}/mirrorlist"
 }
@@ -129,8 +129,7 @@ function clean_mirrorlist_file() {
 #######################################
 function get_mirrorlist_date() {
   result=$(cat "${1}" | awk 'NR==3 {print $4}')
-  # echo "${result}"
-  echo "2024-10-15"
+  echo "${result}"
 }
 
 #######################################
@@ -145,23 +144,23 @@ function get_mirrorlist_date() {
 function check_mirrorlist_dates() {
   new_mirrorlist_date=$(get_mirrorlist_date "${MIRRORLIST_TEMP}/mirrorlist")
 
-  info "Date of new mirrorlist: $new_mirrorlist_date"
+  info_msg "Date of new mirrorlist: $new_mirrorlist_date"
 
   if grep -qe "$new_mirrorlist_date" /etc/pacman.d/mirrorlist; then
-    info "Date is the same. Exiting."
+    info_msg "Date is the same. Exiting."
     exit 1
   else
-    info "We have a newer mirrorlist downloaded. Continuing."
+    info_msg "We have a newer mirrorlist downloaded. Continuing."
   fi
 }
 
-create_temp_dir || ko
+create_temp_dir
 
-download_mirrorlist || ko
+download_mirrorlist
 
-clean_mirrorlist_file || ko
+clean_mirrorlist_file
 
-check_mirrorlist_dates || ko
+check_mirrorlist_dates
 
 # Unset variables.
 # unset MIRRORLIST_TEMP_DIR
