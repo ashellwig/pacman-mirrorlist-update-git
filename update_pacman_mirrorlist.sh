@@ -30,6 +30,23 @@ MIRRORLIST_URL_RAW=(
 MIRRORLIST_URL="$(printf '%s' "${MIRRORLIST_URL_RAW[@]}")"
 
 #######################################
+# Checks the date of the downloaded mirror list compared to the current one.
+# Outputs:
+#   Usage of script and its options/arguments to stdout.
+#######################################
+function update_pacman_mirrorlist_help() {
+  echo -e "$(cat <<END
+\033[1;33mUsage:\033[0m update_pacman_mirrorlist.sh [-b|--backup] [-h|--help]
+\033[1mMaintained By:\033[0m \033[2;32mAsh Hellwig\033[0m \033[4m<ahellwig.dev@gmail.com>\033[0m
+\033[1mShort Option\tLong Option\tUse\033[0m
+\033[1m------------------------------------------------------------\033[0m
+-b\t\t--backup\tBackup existing mirrorlist
+-h\t\t--help\t\tShow help and exit
+END
+)"
+}
+
+#######################################
 # Generates a local timestamp.
 # Globals:
 #   None
@@ -224,6 +241,80 @@ function check_mirrorlist_dates() {
     exit 1
   else
     success_msg "We have a newer mirrorlist downloaded. Continuing."
+  fi
+}
+
+#######################################
+# Removes and replaces the current mirrorlist with the new one, preserving
+# the old mirrorlist as /etc/pacman.d/mirrorlist.bak.
+# Globals:
+#   MIRRORLIST_TEMP
+# Arguments:
+#   None
+# Returns:
+#   0 if successful, non-zero on error.
+#######################################
+function replace_mirrorlist_with_backup() {
+  backup_info_msg_raw=(
+    "Backup option was selected, "
+    "moving current /etc/pacman.d/mirrorlist "
+    "to /etc/pacman.d/mirrorlist.bak"
+  )
+
+  backup_info_msg="$(printf '%s' "${backup_info_msg_raw[@]}")"
+
+  if [[ -f "/etc/pacman.d/mirrorlist.bak" ]] && [[ -f "/etc/pacman.d/mirrorlist" ]]; then
+    info_msg "$backup_info_msg"
+    warning_msg "Found previous backup. Removing."
+    sudo rm -rf /etc/pacman.d/mirrorlist.bak
+  fi
+
+  sudo cp -r /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
+
+  if [[ -f "/etc/pacman.d/mirrorlist" ]]; then
+    sudo rm -rf /etc/pacman.d/mirrorlist
+  fi
+
+  sudo cp -r "${MIRRORLIST_TEMP}/mirrorlist" /etc/pacman.d/mirrorlist
+
+  if [[ -f "/etc/pacman.d/mirrorlist" ]]; then
+    success_msg "Successfully updated mirrorlist!"
+    exit 0
+  else
+    error_msg "Failed to update the mirrorlist."
+    exit 1
+  fi
+}
+
+#######################################
+# Removes and replaces the current mirrorlist with the new one.
+# Globals:
+#   MIRRORLIST_TEMP
+# Arguments:
+#   None
+# Returns:
+#   0 if successful, non-zero on error.
+#######################################
+function replace_mirrorlist_without_backup() {
+    backup_info_msg_raw=(
+    "Backup option was NOT selected, "
+    "removing current /etc/pacman.d/mirrorlist."
+  )
+
+  backup_info_msg="$(printf '%s' "${backup_info_msg_raw[@]}")"
+
+  if [[ -f "/etc/pacman.d/mirrorlist" ]]; then
+    sudo rm -rf /etc/pacman.d/mirrorlist
+  fi
+
+  sudo cp -r "${MIRRORLIST_TEMP}/mirrorlist" /etc/pacman.d/mirrorlist
+
+  if [[ -f "/etc/pacman.d/mirrorlist" ]]; then
+    success_msg "Successfully updated mirrorlist!"
+    exit 0
+  else
+    error_msg "Failed to update the mirrorlist."
+    exit 1
   fi
 }
 
