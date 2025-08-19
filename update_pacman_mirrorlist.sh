@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# Updates the pacman mirrorlist with a freshly generated one using only bash.
 
 # Copyright 2025 Ash Hellwig <ahellwig.dev@gmail.com>
 #
@@ -14,10 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 # Global Variables
 MIRRORLIST_TEMP="${HOME}/MIRRORLIST_TEMP"
-export MIRRORLIST_TEMP
 
 MIRRORLIST_URL_RAW=(
   'https://archlinux.org/mirrorlist/'
@@ -26,10 +26,8 @@ MIRRORLIST_URL_RAW=(
   '&protocol=https'
   '&ip_version=4'
 )
-export MIRRORLIST_URL_RAW
 
 MIRRORLIST_URL="$(printf '%s' "${MIRRORLIST_URL_RAW[@]}")"
-export MIRRORLIST_URL
 
 #######################################
 # Generates a local timestamp.
@@ -117,7 +115,7 @@ function clean_temp_dir() {
   if [[ ! -d "${MIRRORLIST_TEMP}" ]]; then
     success_msg "Successfully removed MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
   else
-    warning_msg "Failed to delete MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
+    error_msg "Failed to delete MIRRORLIST_TEMP at ${MIRRORLIST_TEMP}."
     return 1
   fi
 }
@@ -158,14 +156,19 @@ function create_temp_dir() {
 # Arguments:
 #   None
 # Outputs:
-#   Updated mirrorlist to /etc/pacman.d/mirrorlist
-#   OR
-#   Message indicating that mirror list is already up-to-date to STDOUT
+#   Message indicating an updated mirrorlist to MIRRORLIST_TEMP was downloaded.
 #######################################
 function download_mirrorlist() {
-  info_msg "Downloading new mirrorlist to ${MIRRORLIST_TEMP}"
+  info_msg "Downloading new mirrorlist to ${MIRRORLIST_TEMP}."
 
   curl -s "$MIRRORLIST_URL" -o "${MIRRORLIST_TEMP}/mirrorlist"
+
+  if [[ -f "${MIRRORLIST_TEMP}/mirrorlist" ]]; then
+    success_msg "Successfully downloaded new mirrorlist file."
+  else
+    error_msg "Failed to download mirrorlist file."
+    exit 1
+  fi
 }
 
 #######################################
@@ -178,6 +181,8 @@ function download_mirrorlist() {
 #   0 if successful, non-zero on error.
 #######################################
 function clean_mirrorlist_file() {
+  info_msg "Cleaning mirrorlist file."
+
   awk \
     -i inplace \
     '{sub(/#Server/, "Server"); print}' \
@@ -206,6 +211,8 @@ function get_mirrorlist_date() {
 #   None
 # Returns:
 #   "0" if the dates do NOT match and "1" if the dates DO match.
+# Outputs:
+#   Result of the date comparison.
 #######################################
 function check_mirrorlist_dates() {
   new_mirrorlist_date=$(get_mirrorlist_date "${MIRRORLIST_TEMP}/mirrorlist")
@@ -213,10 +220,10 @@ function check_mirrorlist_dates() {
   info_msg "Date of new mirrorlist: $new_mirrorlist_date"
 
   if grep -qe "$new_mirrorlist_date" /etc/pacman.d/mirrorlist; then
-    info_msg "Date is the same. Exiting."
+    error_msg "Date is the same. Exiting."
     exit 1
   else
-    info_msg "We have a newer mirrorlist downloaded. Continuing."
+    success_msg "We have a newer mirrorlist downloaded. Continuing."
   fi
 }
 
@@ -228,14 +235,4 @@ clean_mirrorlist_file
 
 check_mirrorlist_dates
 
-# Unset variables.
-# unset MIRRORLIST_TEMP_DIR
-# unset MIRRORLIST_URL_RAW
-# unset MIRRORLIST_URL
-
-# Unset functions.
-# unfunction clean_temp_dir
-# unfunction create_temp_dir
-# unfunction download_mirrorlist
-# unfunction get_mirrorlist_date
-# unfunction check_mirrorlist_dates
+clean_temp_dir
