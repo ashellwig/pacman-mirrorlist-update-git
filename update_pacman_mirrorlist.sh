@@ -241,6 +241,7 @@ function check_mirrorlist_dates() {
     return 1
   else
     success_msg "We have a newer mirrorlist downloaded. Continuing."
+    return 0
   fi
 }
 
@@ -318,36 +319,57 @@ function replace_mirrorlist_without_backup() {
 
 # Parse arguments
 make_backup=false
+run_update=false
+show_help=false
+
 key="$1"
 
 case "${key}" in
   -b|--backup)
+    run_update=true
     make_backup=true
     ;;
   -h|--help)
+    run_update=false
     update_pacman_mirrorlist_help
     ;;
   ?)
     warning_msg "Argument not found!"
-    update_pacman_mirrorlist_help
+    run_update=false
+    show_help=true
     ;;
   *)
+    run_update=true
     make_backup=false
 esac
 
-create_temp_dir
-
-download_mirrorlist
-
-clean_mirrorlist_file
-
-check_mirrorlist_dates
-
-if [[ "$make_backup" == true ]]; then
-  replace_mirrorlist_with_backup
-  clean_temp_dir
-else
-  replace_mirrorlist_without_backup
-  clean_temp_dir
+if [[ "$run_update" == false ]] && [[ "$show_help" == true ]]; then
+  update_pacman_mirrorlist_help
+  exit 0
+elif [[ "$run_update" == true ]] && [[ "$show_help" == true ]]; then
+  run_update=false
+  update_pacman_mirrorlist_help
+  exit 0
 fi
 
+if [[ "$run_update" == true ]]; then
+  create_temp_dir
+
+  download_mirrorlist
+
+  clean_mirrorlist_file
+
+  check_mirrorlist_dates
+
+  if [[ $? -ne 1 ]]; then
+    if [[ "$make_backup" == true ]]; then
+      replace_mirrorlist_with_backup
+      clean_temp_dir
+      exit 0
+    else
+      replace_mirrorlist_without_backup
+      clean_temp_dir
+      exit 0
+    fi
+  fi
+fi
