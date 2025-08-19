@@ -13,5 +13,10 @@
     "shellcheck.run": "onSave",
     // Formatting
     "shellformat.path": "${userHome}/go/bin/shfmt",
-    "shellformat.flag": "-i 2 -bn -ci -sr -ln bash"
+    "shellformat.flag": "-i 2 -bn -ci -sr -ln bash",
+    /* Misc. */
+    // License
+    "licenser.license": "AL2",
+    "licenser.author": "Ash Hellwig <ahellwig.dev@gmail.com>",
+    "licenser.projectName": "pacman_mirrorlist_update_git"
 }
