@@ -318,6 +318,27 @@ function replace_mirrorlist_without_backup() {
   fi
 }
 
+# Parse arguments
+make_backup=false
+key="$1"
+
+case "${key}" in
+  -b|--backup)
+    make_backup=true
+    ;;
+  -h|--help)
+    update_pacman_mirrorlist_help
+    exit 0
+    ;;
+  ?)
+    warning_msg "Argument not found!"
+    update_pacman_mirrorlist_help
+    exit 0
+    ;;
+  *)
+    make_backup=false
+esac
+
 create_temp_dir
 
 download_mirrorlist
@@ -325,5 +346,11 @@ download_mirrorlist
 clean_mirrorlist_file
 
 check_mirrorlist_dates
+
+if [[ "$make_backup" == true ]]; then
+  info_msg "Creating a backup"
+else
+  info_msg "No backup being created"
+fi
 
 clean_temp_dir
