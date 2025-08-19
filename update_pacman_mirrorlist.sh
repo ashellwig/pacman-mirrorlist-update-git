@@ -184,7 +184,7 @@ function download_mirrorlist() {
     success_msg "Successfully downloaded new mirrorlist file."
   else
     error_msg "Failed to download mirrorlist file."
-    exit 1
+    return 1
   fi
 }
 
@@ -238,7 +238,7 @@ function check_mirrorlist_dates() {
 
   if grep -qe "$new_mirrorlist_date" /etc/pacman.d/mirrorlist; then
     error_msg "Date is the same. Exiting."
-    exit 1
+    return 1
   else
     success_msg "We have a newer mirrorlist downloaded. Continuing."
   fi
@@ -279,10 +279,8 @@ function replace_mirrorlist_with_backup() {
 
   if [[ -f "/etc/pacman.d/mirrorlist" ]]; then
     success_msg "Successfully updated mirrorlist!"
-    exit 0
   else
     error_msg "Failed to update the mirrorlist."
-    exit 1
   fi
 }
 
@@ -311,10 +309,10 @@ function replace_mirrorlist_without_backup() {
 
   if [[ -f "/etc/pacman.d/mirrorlist" ]]; then
     success_msg "Successfully updated mirrorlist!"
-    exit 0
+    return 0
   else
     error_msg "Failed to update the mirrorlist."
-    exit 1
+    return 1
   fi
 }
 
@@ -328,12 +326,10 @@ case "${key}" in
     ;;
   -h|--help)
     update_pacman_mirrorlist_help
-    exit 0
     ;;
   ?)
     warning_msg "Argument not found!"
     update_pacman_mirrorlist_help
-    exit 0
     ;;
   *)
     make_backup=false
@@ -349,8 +345,9 @@ check_mirrorlist_dates
 
 if [[ "$make_backup" == true ]]; then
   replace_mirrorlist_with_backup
+  clean_temp_dir
 else
   replace_mirrorlist_without_backup
+  clean_temp_dir
 fi
 
-clean_temp_dir
