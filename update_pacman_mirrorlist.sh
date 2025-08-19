@@ -348,9 +348,9 @@ clean_mirrorlist_file
 check_mirrorlist_dates
 
 if [[ "$make_backup" == true ]]; then
-  info_msg "Creating a backup"
+  replace_mirrorlist_with_backup
 else
-  info_msg "No backup being created"
+  replace_mirrorlist_without_backup
 fi
 
 clean_temp_dir
